@@ -15,6 +15,7 @@ import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -172,18 +173,6 @@ public class StreamingCell implements Cell {
   }
 
   /**
-   * Return the cell type.
-   *
-   * @return the cell type
-   * Will be renamed to <code>getCellType()</code> when we make the CellType enum transition in POI 4.0. See bug 59791.
-   */
-  @Override
-  @Deprecated
-  public CellType getCellTypeEnum() {
-    return getCellType();
-  }
-
-  /**
    * Get the value of the cell as a string.
    * For blank cells we return an empty string.
    *
@@ -222,6 +211,14 @@ public class StreamingCell implements Cell {
       throw new IllegalStateException("Cell type cannot be CELL_TYPE_STRING");
     }
     return rawContents == null ? null : HSSFDateUtil.getJavaDate(getNumericCellValue(), use1904Dates);
+  }
+
+  @Override
+  public LocalDateTime getLocalDateTimeCellValue() {
+    if(getCellType() == CellType.STRING){
+      throw new IllegalStateException("Cell type cannot be CELL_TYPE_STRING");
+    }
+    return rawContents == null ? null : HSSFDateUtil.getLocalDateTime(getNumericCellValue(), use1904Dates);
   }
 
   /**
@@ -345,12 +342,6 @@ public class StreamingCell implements Cell {
     }
   }
 
-  @Deprecated
-  @Override
-  public CellType getCachedFormulaResultTypeEnum() {
-    return getCachedFormulaResultType();
-  }
-
   /* Not supported */
 
   /**
@@ -374,6 +365,11 @@ public class StreamingCell implements Cell {
    */
   @Override
   public void setCellValue(Date value) {
+    throw new NotSupportedException();
+  }
+
+  @Override
+  public void setCellValue(LocalDateTime localDateTime) {
     throw new NotSupportedException();
   }
 

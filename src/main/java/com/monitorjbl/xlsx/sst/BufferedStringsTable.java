@@ -109,8 +109,6 @@ public class BufferedStringsTable extends SharedStringsTable implements AutoClos
   public RichTextString getItemAt(int idx) {
     return new XSSFRichTextString(list.getAt(idx));
   }
-
-  @Override
   public CTRst getEntryAt(int idx) {
     return ((XSSFRichTextString)getItemAt(idx)).getCTRst();
   }

@@ -2,6 +2,7 @@ package com.monitorjbl.xlsx.impl;
 
 import com.monitorjbl.xlsx.exceptions.MissingSheetException;
 import org.apache.poi.ss.SpreadsheetVersion;
+import org.apache.poi.ss.formula.EvaluationWorkbook;
 import org.apache.poi.ss.formula.udf.UDFFinder;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -243,7 +244,7 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
    * Not supported
    */
   @Override
-  public short getNumberOfFonts() {
+  public int getNumberOfFonts() {
     throw new UnsupportedOperationException();
   }
 
@@ -252,14 +253,6 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
    */
   @Override
   public int getNumberOfFontsAsInt() { throw new UnsupportedOperationException(); }
-
-  /**
-   * Not supported
-   */
-  @Override
-  public Font getFontAt(short idx) {
-    throw new UnsupportedOperationException();
-  }
 
   /**
    * Not supported
@@ -335,39 +328,7 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
    * Not supported
    */
   @Override
-  public Name getNameAt(int nameIndex) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Not supported
-   */
-  @Override
   public Name createName() {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Not supported
-   */
-  @Override
-  public int getNameIndex(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Not supported
-   */
-  @Override
-  public void removeName(int index) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Not supported
-   */
-  @Override
-  public void removeName(String name) {
     throw new UnsupportedOperationException();
   }
 
@@ -544,6 +505,11 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
    */
   @Override
   public int addOlePackage(byte[] bytes, String s, String s1, String s2) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public EvaluationWorkbook createEvaluationWorkbook() {
     throw new UnsupportedOperationException();
   }
 }
