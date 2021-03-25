@@ -9,13 +9,14 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,17 +38,18 @@ import static org.apache.poi.ss.usermodel.Row.MissingCellPolicy.CREATE_NULL_AS_B
 import static org.apache.poi.ss.usermodel.Row.MissingCellPolicy.RETURN_BLANK_AS_NULL;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class StreamingReaderTest {
-  @BeforeClass
+  @BeforeAll
   public static void init() {
     Locale.setDefault(Locale.ENGLISH);
   }
@@ -155,7 +157,7 @@ public class StreamingReaderTest {
   @Test
   public void testGetDateCellValue() throws Exception {
     try(
-        InputStream is = new FileInputStream(new File("src/test/resources/data_types.xlsx"));
+        InputStream is = new FileInputStream("src/test/resources/data_types.xlsx");
         Workbook wb = StreamingReader.builder().open(is);
     ) {
 
@@ -174,6 +176,10 @@ public class StreamingReaderTest {
       final GregorianCalendar cal = new GregorianCalendar();
       cal.setTime(dt);
       assertEquals(cal.get(Calendar.YEAR), 2014);
+
+      // Verify LocalDateTime version is correct as well
+      LocalDateTime localDateTime = obj.get(4).get(1).getLocalDateTimeCellValue();
+      assertEquals(2014, localDateTime.getYear());
 
       try {
         obj.get(0).get(0).getDateCellValue();
@@ -388,14 +394,13 @@ public class StreamingReaderTest {
     }
   }
 
-  @Test(expected = MissingSheetException.class)
+  @Test
   public void testSheetName_missingInStream() throws Exception {
     try(
         InputStream is = new FileInputStream(new File("src/test/resources/sheets.xlsx"));
         Workbook wb = StreamingReader.builder().open(is);
     ) {
-      wb.getSheet("asdfasdfasdf");
-      fail("Should have failed");
+      assertThrows(MissingSheetException.class, ()->wb.getSheet("asdfasdfasdf"));
     }
   }
 

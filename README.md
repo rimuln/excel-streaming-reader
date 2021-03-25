@@ -1,4 +1,4 @@
-[![Run Status](https://api.shippable.com/projects/55cfbb00edd7f2c052a980a5/badge?branch=master)](https://app.shippable.com/projects/55cfbb00edd7f2c052a980a5) 
+![Run Status](https://gitlab.com/monitorjbl/excel-streaming-reader/badges/master/pipeline.svg)
 
 Profiled with [![Yourkit](https://www.yourkit.com/images/yklogo.png)](https://www.yourkit.com/java/profiler/)
 
@@ -9,6 +9,8 @@ If you've used [Apache POI](http://poi.apache.org) in the past to read in Excel 
 There are plenty of good reasons for why Apache has to read in the whole workbook, but most of them have to do with the fact that the library allows you to read and write with random addresses. If (and only if) you just want to read the contents of an Excel file in a fast and memory effecient way, you probably don't need this ability. Unfortunately, the only thing in the POI library for reading a streaming workbook requires your code to use a SAX-like parser. All of the friendly classes like `Row` and `Cell` are missing from that API.
 
 This library serves as a wrapper around that streaming API while preserving the syntax of the standard POI API. Read on to see if it's right for you.
+
+**NOTE**: This library only supports reading XLSX files.
 
 # Important notice about Java 7 support
 

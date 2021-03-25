@@ -5,13 +5,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.monitorjbl</groupId>
   <artifactId>xlsx-streamer</artifactId>
-  <version>2.1.0.krista2</version>
+  <version>3.0.0</version>
   <name>Streaming Excel reader</name>
   <description>Streaming Excel reader</description>
   <url>https://github.com/javister/excel-streaming-reader</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <apache.poi.version>5.0.0</apache.poi.version>
+    <slf4j.version>1.7.30</slf4j.version>
   </properties>
 
   <developers>
@@ -115,13 +117,18 @@
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>5.0.0</version>
+      <version>${apache.poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
-      <version>5.0.0</version>
+      <version>${apache.poi.version}</version>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.apache.poi</groupId>-->
+<!--      <artifactId>poi-ooxml-schemas</artifactId>-->
+<!--      <version>${apache.poi.version}</version>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
@@ -131,33 +138,38 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.25</version>
+      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.14.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.7.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.nanohttpd</groupId>
       <artifactId>nanohttpd</artifactId>
-      <version>2.2.0</version>
+      <version>2.3.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>

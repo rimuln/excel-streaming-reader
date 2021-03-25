@@ -240,9 +240,6 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
     throw new UnsupportedOperationException();
   }
 
-  /**
-   * Not supported
-   */
   @Override
   public int getNumberOfFonts() {
     throw new UnsupportedOperationException();
@@ -510,6 +507,6 @@ public class StreamingWorkbook implements Workbook, AutoCloseable {
 
   @Override
   public EvaluationWorkbook createEvaluationWorkbook() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 }
