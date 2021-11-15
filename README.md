@@ -1,48 +1,49 @@
-![Run Status](https://gitlab.com/monitorjbl/excel-streaming-reader/badges/master/pipeline.svg)
-
-Profiled with [![Yourkit](https://www.yourkit.com/images/yklogo.png)](https://www.yourkit.com/java/profiler/)
+![Build Status](https://github.com/pjfanning/excel-streaming-reader/actions/workflows/ci.yml/badge.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.pjfanning/excel-streaming-reader/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.pjfanning/excel-streaming-reader)
 
 # Excel Streaming Reader
 
-If you've used [Apache POI](http://poi.apache.org) in the past to read in Excel files, you probably noticed that it's not very memory efficient. Reading in an entire workbook will cause a severe memory usage spike, which can wreak havoc on a server. 
+This is a fork of [monitorjbl/excel-streaming-reader](https://github.com/monitorjbl/excel-streaming-reader).
 
-There are plenty of good reasons for why Apache has to read in the whole workbook, but most of them have to do with the fact that the library allows you to read and write with random addresses. If (and only if) you just want to read the contents of an Excel file in a fast and memory effecient way, you probably don't need this ability. Unfortunately, the only thing in the POI library for reading a streaming workbook requires your code to use a SAX-like parser. All of the friendly classes like `Row` and `Cell` are missing from that API.
+This implementation supports [Apache POI](http://poi.apache.org) 5.x and only supports Java 8 and above. v2.3.x supports POI 4.x.
 
-This library serves as a wrapper around that streaming API while preserving the syntax of the standard POI API. Read on to see if it's right for you.
+* [Sample](https://github.com/pjfanning/excel-streaming-reader-sample)
 
-**NOTE**: This library only supports reading XLSX files.
+This implementation has some extra features
+* OOXML Strict format support (see below)
+* More methods are implemented. Some require that features are enabled in the StreamingReader.Builder instance because they might have an additional overhead.
+* Check [Builder](https://pjfanning.github.io/excel-streaming-reader/javadocs/3.1.6/com/github/pjfanning/xlsx/StreamingReader.Builder.html) implementation to see what options are available.
 
-# Important notice about Java 7 support
-
-The latest versions of this library (2.x) have dropped support for Java 7. This is due to POI 4.0 requiring Java 8; as that is a core dependency of this library, it cannot support older versions of Java. The older 1.x and 0.x versions will no longer be maintained.
+## Used By
+* [Apache Drill](https://drill.apache.org/)
+* [Spark-Excel](https://github.com/crealytics/spark-excel)
+* [Sirius Web](https://sirius-lib.net/#web-features)
 
 # Include
-
-This library is available from from Maven Central, and you can optionally install it yourself. The Maven installation instructions can be found on the [release](https://github.com/monitorjbl/excel-streaming-reader/releases) page.
 
 To use it, add this to your POM:
 
 ```
 <dependencies>
   <dependency>
-    <groupId>com.monitorjbl</groupId>
-    <artifactId>xlsx-streamer</artifactId>
-    <version>2.1.0</version>
+    <groupId>com.github.pjfanning</groupId>
+    <artifactId>excel-streaming-reader</artifactId>
+    <version>3.2.3</version>
   </dependency>
 </dependencies>  
 ```
 
 # Usage
 
-This library is very specific in how it is meant to be used. You should initialize it like so:
+The package name is different from the *monitorjbl/excel-streaming-reader* jar. The code is very similar.
 
 ```java
-import com.monitorjbl.xlsx.StreamingReader;
+import com.github.pjfanning.xlsx.StreamingReader;
 
 InputStream is = new FileInputStream(new File("/path/to/workbook.xlsx"));
 Workbook workbook = StreamingReader.builder()
         .rowCacheSize(100)    // number of rows to keep in memory (defaults to 10)
-        .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
+        .bufferSize(4096)     // buffer size (in bytes) to use when reading InputStream to file (defaults to 1024)
         .open(is);            // InputStream or File for XLSX file (required)
 ```
 
@@ -65,15 +66,16 @@ Or open a sheet by name or index:
 Sheet sheet = workbook.getSheet("My Sheet")
 ```
 
-The StreamingWorkbook is an autoclosable resource, and it's important that you close it to free the filesystem resource it consumed. With Java 7, you can do this:
+The StreamingWorkbook is an autocloseable resource, and it's important that you close it to free the filesystem resource it consumed. With Java 8, you can do this:
 
 ```java
 try (
-  InputStream is = new FileInputStream(new File("/path/to/workbook.xlsx"));
-  Workbook workbook = StreamingReader.builder()
+        InputStream is = new FileInputStream(new File("/path/to/workbook.xlsx"));
+        Workbook workbook = StreamingReader.builder()
           .rowCacheSize(100)
           .bufferSize(4096)
-          .open(is)) {
+          .open(is)
+){
   for (Sheet sheet : workbook){
     System.out.println(sheet.getSheetName());
     for (Row r : sheet) {
@@ -87,6 +89,50 @@ try (
 
 You may access cells randomly within a row, as the entire row is cached. **However**, there is no way to randomly access rows. As this is a streaming implementation, only a small number of rows are kept in memory at any given time.
 
+## Temp File Shared Strings
+
+By default, the `/xl/sharedStrings.xml` data for your xlsx is stored in memory and this might cause memory problems.
+
+You can use the `setUseSstTempFile(true)` option to have this data stored in a temp file (a [H2 MVStore](http://www.h2database.com/html/mvstore.html)). There is also a `setEncryptSstTempFile(true)` option if you are concerned about having the raw data in a cleartext temp file.
+
+```java
+  Workbook workbook = StreamingReader.builder()
+          .setUseSstTempFile(true)
+          .setEncryptSstTempFile(false)
+          .fullFormatRichText(true) //if you want the rich text formatting as well as the text
+          .open(is);
+```
+
+## Temp File Comments
+
+As with shared strings, comments are stored in a separate part of the xlsx file and by default,
+excel-streaming-reader does not read them. You can configure excel-streaming-reader to read them and
+choose whether you want them stored in memory or in a temp file while reading the xlsx file.
+
+```java
+  Workbook workbook = StreamingReader.builder()
+          .setReadComments(true)
+          .setUseCommentsTempFile(true)
+          .setEncryptCommentsTempFile(false)
+          .fullFormatRichText(true) //if you want the rich text formatting as well as the text
+          .open(is);
+```
+
+## Reading Very Large Excel Files
+
+excel-streaming-reader uses some Apache POI code under the hood. That code uses memory and/or
+temp files to store temporary data while it processes the xlsx. With very large files, you will probably
+want to favour using temp files.
+
+With `StreamingReader.builder()`, do not set `setAvoidTempFiles(true)`. You should also consider, tuning
+[POI settings](https://poi.apache.org/components/configuration.html) too. In particular,
+consider setting these properties:
+
+```java
+  org.apache.poi.openxml4j.util.ZipInputStreamZipEntrySource.setThresholdBytesForTempFiles(16384); //16KB
+  org.apache.poi.openxml4j.opc.ZipPackage.setUseTempFilePackageParts(true);
+```
+
 # Supported Methods
 
 Not all POI Cell and Row functions are supported. The most basic ones are (`Cell.getStringCellValue()`, `Cell.getColumnIndex()`, etc.), but don't be surprised if you get a `NotSupportedException` on the more advanced ones.
@@ -95,46 +141,20 @@ I'll try to add more support as time goes on, but some items simply can't be rea
 
 This is a brief and very generalized list of things that are not supported for reads:
 
-* Functions
+* Recalculating Formulas - you will get values that Excel cached in the xlsx when the file was saved
 * Macros
-* Styled cells (the styles are kept at the end of the ZIP file)
+
+# OOXML Strict format
+
+This library focuses on spreadsheets in OOXML Transitional format - despite the name, this format is more widely used. The wikipedia entry on OOXML formats has a good [description](https://en.wikipedia.org/wiki/Office_Open_XML).
+
+* From version 3.0.2, the standard streaming code will also try to read OOXML Strict format.
+  * support is still evolving, it is recommended you use the latest available excel-streaming-reader version if you are interested in supporting OOXML Strict format
+* Version 3.2.0 drops StreamingReader.Builder `convertFromOoXmlStrict` option (previously deprecated) as this is supported by default now.
 
 # Logging
 
-This library uses SLF4j logging. This is a rare use case, but you can plug in your logging provider and get some potentially useful output. Below is an example of doing this with log4j:
-
-**pom.xml**
-
-```
-<dependencies>
-  <dependency>
-    <groupId>com.monitorjbl</groupId>
-    <artifactId>xlsx-streamer</artifactId>
-    <version>2.1.0</version>
-  </dependency>
-  <dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-log4j12</artifactId>
-    <version>1.7.6</version>
-  </dependency>
-  <dependency>
-    <groupId>log4j</groupId>
-    <artifactId>log4j</artifactId>
-    <version>1.2.17</version>
-  </dependency>
-</dependencies>
-```
-
-**log4j.properties**
-
-```
-log4j.rootLogger=DEBUG, A1
-log4j.appender.A1=org.apache.log4j.ConsoleAppender
-log4j.appender.A1.layout=org.apache.log4j.PatternLayout
-log4j.appender.A1.layout.ConversionPattern=%d{ISO8601} [%c] %p: %m%n
-
-log4j.category.com.monitorjbl=DEBUG
-```
+This library uses [SLF4j](http://www.slf4j.org/) logging. This is a rare use case, but you can plug in your logging provider and get some potentially useful output. POI 5.1.0 switched to [Log4j 2.x](https://logging.apache.org/log4j/2.x/) for logging. If you need logs from both libraries, you will need to use one of the bridge jars to map slf4j to log4j or vice versa.
 
 # Implementation Details
 
